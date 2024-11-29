@@ -57,12 +57,12 @@ fun MainScreen() {
         // Tool Panel at the top
         ToolPanel(
             onColorSelected = { color ->
-                doodleView.updateBrush(color, doodleView.paint.strokeWidth, doodleView.paint.alpha) // Example: Update with default size and opacity
+                doodleView.updateBrush(color, doodleView.currentPaint.strokeWidth, doodleView.currentPaint.alpha) // Example: Update with default size and opacity
             },
             onBrushSizeSelected = { size ->
-                doodleView.updateBrush(doodleView.paint.color, size, doodleView.paint.alpha)},
+                doodleView.updateBrush(doodleView.currentPaint.color, size, doodleView.currentPaint.alpha)},
             onOpacitySelected = { opacity ->
-                doodleView.updateBrush(doodleView.paint.color, doodleView.paint.strokeWidth, opacity)
+                doodleView.updateBrush(doodleView.currentPaint.color, doodleView.currentPaint.strokeWidth, opacity)
             },
             onClearSketch = {
                 doodleView.clearCanvas()
@@ -179,7 +179,7 @@ fun DropdownMenuSelector(
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded },
-            modifier = Modifier.width(100.dp)
+            modifier = Modifier.width(120.dp)
         ) {
             TextField(
                 value = selectedOption,

@@ -10,57 +10,76 @@ import android.view.MotionEvent
 import android.view.View
 
 class DoodleView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
-    val paint = Paint().apply {
-        color = Color.BLACK
-        strokeWidth = 5f
+    // Track individual strokes
+    private val strokes = mutableListOf<Stroke>()
+
+    // Current brush configuration
+    private var currentColor = Color.BLACK
+    private var currentSize = 5f
+    private var currentOpacity = 255
+
+    // Data class to track each individual stroke
+    private data class Stroke(
+        val path: Path,
+        val paint: Paint
+    )
+
+    // Current path being drawn
+    private var currentPath = Path()
+    var currentPaint = Paint().apply {
+        color = currentColor
+        strokeWidth = currentSize
+        alpha = currentOpacity
         isAntiAlias = true
         style = Paint.Style.STROKE
     }
-    private val path = Path()
 
-    private var brushColor = Color.BLACK
-    private var brushSize = 5f
-    private var brushOpacity = 255
-
-
-    init {
-        paint.color = brushColor
-        paint.strokeWidth = brushSize
-        paint.alpha = brushOpacity
-    }
-
-    constructor(context: Context) : this(context, null)
-
-
-    // Set color, brush size, and opacity
     fun updateBrush(color: Int, size: Float, opacity: Int) {
-        paint.color = color
-        paint.strokeWidth = size
-        paint.alpha = opacity
+        currentColor = color
+        currentSize = size
+        currentOpacity = opacity
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                path.moveTo(event.x, event.y)
+                // Create a new path and paint for this stroke
+                currentPath = Path()
+                currentPaint = Paint().apply {
+                    color = currentColor
+                    strokeWidth = currentSize
+                    alpha = currentOpacity
+                    isAntiAlias = true
+                    style = Paint.Style.STROKE
+                }
+                currentPath.moveTo(event.x, event.y)
                 invalidate()
             }
             MotionEvent.ACTION_MOVE -> {
-                path.lineTo(event.x, event.y)
+                currentPath.lineTo(event.x, event.y)
                 invalidate()
             }
-            MotionEvent.ACTION_UP -> { }
+            MotionEvent.ACTION_UP -> {
+                // Save the completed stroke
+                strokes.add(Stroke(currentPath, currentPaint))
+            }
         }
         return true
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        canvas.drawPath(path, paint)
+        // Redraw all previous strokes
+        strokes.forEach { stroke ->
+            canvas.drawPath(stroke.path, stroke.paint)
+        }
+        // Draw the current path
+        canvas.drawPath(currentPath, currentPaint)
     }
 
     fun clearCanvas() {
-        path.reset()
+        strokes.clear()
+        currentPath.reset()
         invalidate()
     }
 }
