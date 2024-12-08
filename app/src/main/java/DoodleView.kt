@@ -12,6 +12,9 @@ import android.view.View
 class DoodleView(context: Context, attrs: AttributeSet? = null) : View(context, attrs) {
     // Track individual strokes
     private val strokes = mutableListOf<Stroke>()
+    private val undoStack = mutableListOf<Stroke>()
+    private val redoStack = mutableListOf<Stroke>()
+
 
     // Current brush configuration
     private var currentColor = Color.BLACK
@@ -38,6 +41,9 @@ class DoodleView(context: Context, attrs: AttributeSet? = null) : View(context, 
         currentColor = color
         currentSize = size
         currentOpacity = opacity
+
+        // Ensure the current paint reflects the new opacity
+        currentPaint.alpha = currentOpacity
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -53,6 +59,7 @@ class DoodleView(context: Context, attrs: AttributeSet? = null) : View(context, 
                     style = Paint.Style.STROKE
                 }
                 currentPath.moveTo(event.x, event.y)
+                redoStack.clear() // Clear redo stack on a new drawing
                 invalidate()
             }
             MotionEvent.ACTION_MOVE -> {
@@ -62,6 +69,7 @@ class DoodleView(context: Context, attrs: AttributeSet? = null) : View(context, 
             MotionEvent.ACTION_UP -> {
                 // Save the completed stroke
                 strokes.add(Stroke(currentPath, currentPaint))
+                undoStack.add(Stroke(currentPath, currentPaint)) // Add to undo stack
             }
         }
         return true
@@ -79,7 +87,25 @@ class DoodleView(context: Context, attrs: AttributeSet? = null) : View(context, 
 
     fun clearCanvas() {
         strokes.clear()
+        undoStack.clear()
+        redoStack.clear()
         currentPath.reset()
         invalidate()
     }
+
+    fun undo() {
+        if (strokes.isNotEmpty()) {
+            val lastStroke = strokes.removeAt(strokes.size - 1)
+            redoStack.add(lastStroke) // Add the removed stroke to redo stack
+            invalidate()
+        }
+    }
+
+    fun redo() {
+        if (redoStack.isNotEmpty()) {
+            val lastRedo = redoStack.removeAt(redoStack.size - 1)
+            strokes.add(lastRedo) // Add the stroke back to the strokes
+            invalidate()
+        }
+}
 }

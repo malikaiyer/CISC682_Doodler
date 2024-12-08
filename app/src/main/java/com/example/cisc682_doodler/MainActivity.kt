@@ -67,7 +67,9 @@ fun MainScreen() {
             onClearSketch = {
                 doodleView.clearCanvas()
                 isDrawingCleared = true
-            }
+            },
+            onUndo = { doodleView.undo() }, // Wire to DoodleView undo
+            onRedo = { doodleView.redo() }  // Wire to DoodleView redo
         )
 
         Spacer(modifier = Modifier.height(16.dp)) // Space between tool panel and canvas
@@ -102,7 +104,9 @@ fun ToolPanel(
     onColorSelected: (Int) -> Unit,
     onBrushSizeSelected: (Float) -> Unit,
     onOpacitySelected: (Int) -> Unit,
-    onClearSketch: () -> Unit
+    onClearSketch: () -> Unit,
+    onUndo: () -> Unit, // Add undo handler
+    onRedo: () -> Unit  // Add redo handler
 ) {
     val colors = listOf("Black" to android.graphics.Color.BLACK, "Red" to android.graphics.Color.RED, "Blue" to android.graphics.Color.BLUE)
     val brushSizes = listOf(5f, 10f, 15f, 20f)
@@ -156,10 +160,23 @@ fun ToolPanel(
                     onOpacitySelected(selectedOpacity)
                 })
         }
-
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp), // Spacing between buttons
+            verticalAlignment = Alignment.CenterVertically
+        ){
+        // Undo button
+        Button(onClick = { onUndo() }) {
+            Text("⤺") // Undo icon
+        }
+        // Redo button
+        Button(onClick = { onRedo() }) {
+            Text("⤻") // Redo icon
+        }
         // Clear Sketch button below the row
         Button(onClick = { onClearSketch() }) {
             Text(text = "Clear Sketch")
+        }
         }
     }
 }
